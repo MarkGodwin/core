@@ -1,5 +1,5 @@
 """Platform for scene state switch integration."""
-from typing import Any, List
+from typing import Any, List, Optional
 from homeassistant.const import (
     TEMP_CELSIUS,
     EVENT_STATE_CHANGED,
@@ -32,9 +32,9 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         return
     scene_platform = hass.data[SCENE_DATA_PLATFORM]
 
-    # Create sensor entities to track the scene state
+    # Create switch entities to track the scene state
     scene_state_entities = [
-        SceneStateSensor(scene_entity.entity_id, scene_entity.name)
+        SceneStateSwitch(scene_entity.entity_id, scene_entity.name)
         for scene_entity in scene_platform.entities.values()
     ]
 
@@ -59,23 +59,23 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     return
 
 
-class SceneStateSensor(SwitchEntity):
-    """Representation of a Sensor."""
+class SceneStateSwitch(SwitchEntity):
+    """Representation of a Switch."""
 
     def __init__(self, sceneId, sceneName):
-        """Initialize the sensor."""
+        """Initialize the switch."""
         self._state = False
         self._sceneId = sceneId
         self._sceneName = sceneName
 
     @property
     def name(self):
-        """Return the name of the sensor."""
-        return self._sceneName + " State Sensor"
+        """Return the name of the switch."""
+        return self._sceneName + " Scene Switch"
 
     @property
     def is_on(self):
-        """Return true if sensor is on."""
+        """Return true if the entity state matches the scene."""
         return self._state
 
     async def async_turn_on(self, **kwargs):
@@ -93,12 +93,17 @@ class SceneStateSensor(SwitchEntity):
         await self.hass.services.async_call(
             "scene", SERVICE_TURN_ON, {ATTR_ENTITY_ID: self._sceneId}, blocking=True
         )
-        self.schedule_update_ha_state(force_refresh=True)
+        await self.async_schedule_update_ha_state(force_refresh=True)
 
     @property
     def should_poll(self) -> bool:
         """No polling needed."""
         return False
+
+    @property
+    def icon(self) -> Optional[str]:
+        """Return the icon to use in the frontend, if any."""
+        return "mdi:palette-outline"
 
     def get_tracked_entities(self) -> List[str]:
         if self.hass is None:
@@ -120,44 +125,32 @@ class SceneStateSensor(SwitchEntity):
             # Compare relevant attributes
             supported_features = currentState.attributes.get("supported_features", 0)
 
-            if supported_features & SUPPORT_BRIGHTNESS and (
-                currentState.attributes.get(ATTR_BRIGHTNESS)
-                != sceneState.attributes.get(ATTR_BRIGHTNESS)
-            ):
-                return False
+            attrs_to_check = {
+                SUPPORT_BRIGHTNESS: ATTR_BRIGHTNESS,
+                SUPPORT_COLOR_TEMP: ATTR_COLOR_TEMP,
+                SUPPORT_COLOR: ATTR_RGB_COLOR,
+                SUPPORT_WHITE_VALUE: ATTR_WHITE_VALUE,
+            }
 
-            if supported_features & SUPPORT_COLOR_TEMP and (
-                currentState.attributes.get(ATTR_COLOR_TEMP)
-                != sceneState.attributes.get(ATTR_COLOR_TEMP)
-            ):
-                return False
+            for key in attrs_to_check.keys():
+                attr = attrs_to_check[key]
+                if supported_features & key and currentState.attributes.get(
+                    attr
+                ) != sceneState.attributes.get(attr):
+                    return False
 
-            if supported_features & SUPPORT_COLOR and (
-                currentState.attributes.get(ATTR_RGB_COLOR)
-                != sceneState.attributes.get(ATTR_RGB_COLOR)
-            ):
-                return False
-
-            if supported_features & SUPPORT_WHITE_VALUE and (
-                currentState.attributes.get(ATTR_WHITE_VALUE)
-                != sceneState.attributes.get(ATTR_WHITE_VALUE)
-            ):
-                return False
             return True
 
         return False
 
     def update(self):
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
+        """
+        Compare the current entity state to the scene state
         """
         scenePlatform = self.hass.data[SCENE_DATA_PLATFORM]
         scene = scenePlatform.entities.get(self._sceneId)
 
-        # sceneEntity.sce
         switch = {
-            "input_boolean": self._compare_simple_state,
-            "input_number": self._compare_simple_state,
             "light": self._compare_light_state,
         }
 
