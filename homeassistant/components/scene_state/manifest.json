@@ -1,0 +1,14 @@
+{
+  "domain": "scene_state",
+  "name": "Scene State",
+  "config_flow": false,
+  "documentation": "https://www.home-assistant.io/integrations/scene_state",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": [],
+  "homekit": {},
+  "dependencies": [],
+  "codeowners": [
+    "@MarkGodwin"
+  ]
+}

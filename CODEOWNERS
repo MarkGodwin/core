@@ -418,6 +418,7 @@ homeassistant/components/safe_mode/* @home-assistant/core
 homeassistant/components/saj/* @fredericvl
 homeassistant/components/samsungtv/* @escoand @chemelli74
 homeassistant/components/scene/* @home-assistant/core
+homeassistant/components/scene_state/* @MarkGodwin
 homeassistant/components/schluter/* @prairieapps
 homeassistant/components/scrape/* @fabaff
 homeassistant/components/screenlogic/* @dieselrabbit
