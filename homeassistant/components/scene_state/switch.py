@@ -1,8 +1,13 @@
-"""Platform for scene state binary_sensor integration."""
+"""Platform for scene state switch integration."""
 from typing import Any, List
-from homeassistant.const import TEMP_CELSIUS, EVENT_STATE_CHANGED
+from homeassistant.const import (
+    TEMP_CELSIUS,
+    EVENT_STATE_CHANGED,
+    SERVICE_TURN_ON,
+    ATTR_ENTITY_ID,
+)
 from homeassistant.helpers.entity import Entity
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.switch import SwitchEntity
 from homeassistant.components.light import (
     SUPPORT_BRIGHTNESS,
     SUPPORT_COLOR_TEMP,
@@ -17,7 +22,7 @@ from homeassistant.components.light import (
 )
 
 SCENE_DATA_PLATFORM = "homeassistant_scene"
-DATA_PLATFORM = "binary_sensor"
+DATA_PLATFORM = "switch"
 
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
@@ -40,7 +45,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         affected_entities = (
             sse
             for sse in scene_state_entities
-            if evt.data["entity_id"] in sse.get_tracked_entities()
+            if evt.data[ATTR_ENTITY_ID] in sse.get_tracked_entities()
         )
         for ae in affected_entities:
             ae.schedule_update_ha_state(force_refresh=True)
@@ -54,7 +59,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     return
 
 
-class SceneStateSensor(BinarySensorEntity):
+class SceneStateSensor(SwitchEntity):
     """Representation of a Sensor."""
 
     def __init__(self, sceneId, sceneName):
@@ -72,6 +77,23 @@ class SceneStateSensor(BinarySensorEntity):
     def is_on(self):
         """Return true if sensor is on."""
         return self._state
+
+    async def async_turn_on(self, **kwargs):
+        """Turn the entity on."""
+        # Call the service to activate the attached scene
+        self._state = True
+        await self.hass.services.async_call(
+            "scene", SERVICE_TURN_ON, {ATTR_ENTITY_ID: self._sceneId}, blocking=True
+        )
+
+    async def async_turn_off(self, **kwargs):
+        """Turn the entity off."""
+        # You can't turn a scene off, but we will try to re-apply the scene
+        self._state = False
+        await self.hass.services.async_call(
+            "scene", SERVICE_TURN_ON, {ATTR_ENTITY_ID: self._sceneId}, blocking=True
+        )
+        self.schedule_update_ha_state(force_refresh=True)
 
     @property
     def should_poll(self) -> bool:
