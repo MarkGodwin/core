@@ -93,7 +93,7 @@ class SceneStateSwitch(SwitchEntity):
         await self.hass.services.async_call(
             "scene", SERVICE_TURN_ON, {ATTR_ENTITY_ID: self._sceneId}, blocking=True
         )
-        await self.async_schedule_update_ha_state(force_refresh=True)
+        self.async_schedule_update_ha_state(force_refresh=True)
 
     @property
     def should_poll(self) -> bool:
