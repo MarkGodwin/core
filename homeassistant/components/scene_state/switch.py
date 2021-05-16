@@ -20,9 +20,11 @@ from homeassistant.components.light import (
     ATTR_RGB_COLOR,
     ATTR_WHITE_VALUE,
 )
+import logging
 
 SCENE_DATA_PLATFORM = "homeassistant_scene"
 DATA_PLATFORM = "switch"
+_LOGGER = logging.getLogger("scene_state")
 
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
@@ -34,7 +36,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
     # Create switch entities to track the scene state
     scene_state_entities = [
-        SceneStateSwitch(scene_entity.entity_id, scene_entity.name)
+        SceneStateSwitch(scene_entity.entity_id, scene_entity.name, scene_entity.icon)
         for scene_entity in scene_platform.entities.values()
     ]
 
@@ -62,11 +64,13 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 class SceneStateSwitch(SwitchEntity):
     """Representation of a Switch."""
 
-    def __init__(self, sceneId, sceneName):
+    def __init__(self, sceneId, sceneName, icon):
         """Initialize the switch."""
         self._state = False
         self._sceneId = sceneId
         self._sceneName = sceneName
+        self._icon = icon
+        _LOGGER.info("Creating scene state switch for scene %s", sceneId)
 
     @property
     def name(self):
@@ -83,7 +87,7 @@ class SceneStateSwitch(SwitchEntity):
         # Call the service to activate the attached scene
         self._state = True
         await self.hass.services.async_call(
-            "scene", SERVICE_TURN_ON, {ATTR_ENTITY_ID: self._sceneId}, blocking=True
+            "scene", SERVICE_TURN_ON, {ATTR_ENTITY_ID: self._sceneId}, blocking=False
         )
 
     async def async_turn_off(self, **kwargs):
@@ -103,7 +107,7 @@ class SceneStateSwitch(SwitchEntity):
     @property
     def icon(self) -> Optional[str]:
         """Return the icon to use in the frontend, if any."""
-        return "mdi:palette-outline"
+        return self._icon
 
     def get_tracked_entities(self) -> List[str]:
         if self.hass is None:
@@ -121,27 +125,46 @@ class SceneStateSwitch(SwitchEntity):
 
     def _compare_light_state(self, sceneState) -> bool:
         currentState = self.hass.states.get(sceneState.entity_id)
-        if currentState.state == sceneState.state:
-            # Compare relevant attributes
-            supported_features = currentState.attributes.get("supported_features", 0)
+        if currentState.state != sceneState.state:
+            return False
 
-            attrs_to_check = {
-                SUPPORT_BRIGHTNESS: ATTR_BRIGHTNESS,
-                SUPPORT_COLOR_TEMP: ATTR_COLOR_TEMP,
-                SUPPORT_COLOR: ATTR_RGB_COLOR,
-                SUPPORT_WHITE_VALUE: ATTR_WHITE_VALUE,
-            }
-
-            for key in attrs_to_check.keys():
-                attr = attrs_to_check[key]
-                if supported_features & key and currentState.attributes.get(
-                    attr
-                ) != sceneState.attributes.get(attr):
-                    return False
-
+        if currentState.state == "off":
+            # Off is off.
             return True
 
-        return False
+        # Compare relevant attributes
+        supported_features = currentState.attributes.get("supported_features", 0)
+
+        attrs_to_check = {
+            SUPPORT_BRIGHTNESS: ATTR_BRIGHTNESS,
+            SUPPORT_COLOR_TEMP: ATTR_COLOR_TEMP,
+            SUPPORT_COLOR: ATTR_RGB_COLOR,
+            SUPPORT_WHITE_VALUE: ATTR_WHITE_VALUE,
+        }
+
+        for key in attrs_to_check.keys():
+            attr = attrs_to_check[key]
+
+            if supported_features & key:
+                _LOGGER.debug(
+                    "%s Comparing %s for %s", self.name, attr, sceneState.name
+                )
+                _LOGGER.debug(
+                    "Current %s: %d, Scene state: %d",
+                    attr,
+                    currentState.attributes.get(attr),
+                    sceneState.attributes.get(attr),
+                )
+                if (
+                    abs(
+                        currentState.attributes.get(attr)
+                        - sceneState.attributes.get(attr)
+                    )
+                    > 3
+                ):
+                    return False
+
+        return True
 
     def update(self):
         """
