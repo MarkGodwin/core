@@ -25,7 +25,7 @@ async def async_setup_entry(
         to_add.append(
             BinarySensorMirror(
                 hass,
-                entry.unique_id,
+                entry.entry_id,
                 True,
                 entry.title,
                 entry.options.get(CONF_MOTION_SENSOR),
@@ -36,7 +36,7 @@ async def async_setup_entry(
         to_add.append(
             BinarySensorMirror(
                 hass,
-                entry.unique_id,
+                entry.entry_id,
                 False,
                 entry.title,
                 entry.options.get(CONF_DOORBELL_SENSOR),
