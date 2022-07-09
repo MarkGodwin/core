@@ -2,9 +2,13 @@
   "domain": "mark_camera",
   "name": "Mark's Generic Camera",
   "config_flow": true,
-  "requirements": ["av==9.2.0", "pillow==9.1.1"],
+  "requirements": [
+    "ha-av==10.0.0b4",
+    "pillow==9.1.1"
+  ],
   "documentation": "https://www.home-assistant.io/integrations/generic",
-  "codeowners": ["@MarkGodwin"],
-  "iot_class": "local_push",
-  "version": "1.0.0"
+  "codeowners": [
+    "@MarkGodwin"
+  ],
+  "iot_class": "local_push"
 }
