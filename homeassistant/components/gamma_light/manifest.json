@@ -1,8 +1,8 @@
 {
-  "domain": "scene_state",
-  "name": "Scene State",
-  "config_flow": false,
-  "documentation": "https://www.home-assistant.io/integrations/scene_state",
+  "domain": "gamma_light",
+  "name": "Gamma Light",
+  "config_flow": true,
+  "documentation": "https://www.home-assistant.io/integrations/gamma_light",
   "requirements": [],
   "ssdp": [],
   "zeroconf": [],
