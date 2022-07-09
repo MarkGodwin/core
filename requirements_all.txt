@@ -513,6 +513,9 @@ aurorapy==0.2.7
 # homeassistant.components.autarco
 autarco==2.0.0
 
+# homeassistant.components.mark_camera
+av==9.2.0
+
 # homeassistant.components.avea
 # avea==1.5.1
 
@@ -1044,6 +1047,7 @@ guppy3==3.1.4.post1
 h2==4.1.0
 
 # homeassistant.components.generic
+# homeassistant.components.mark_camera
 # homeassistant.components.stream
 ha-av==10.1.1
 

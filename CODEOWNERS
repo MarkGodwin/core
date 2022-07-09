@@ -507,6 +507,8 @@ build.json @home-assistant/supervisor
 /tests/components/fully_kiosk/ @cgarwood
 /homeassistant/components/fyta/ @dontinelli
 /tests/components/fyta/ @dontinelli
+/homeassistant/components/gamma_light/ @MarkGodwin
+/tests/components/gamma_light/ @MarkGodwin
 /homeassistant/components/garages_amsterdam/ @klaasnicolaas
 /tests/components/garages_amsterdam/ @klaasnicolaas
 /homeassistant/components/gardena_bluetooth/ @elupus
@@ -859,6 +861,8 @@ build.json @home-assistant/supervisor
 /tests/components/lyric/ @timmo001
 /homeassistant/components/madvr/ @iloveicedgreentea
 /tests/components/madvr/ @iloveicedgreentea
+/homeassistant/components/mark_camera/ @MarkGodwin
+/tests/components/mark_camera/ @MarkGodwin
 /homeassistant/components/mastodon/ @fabaff @andrew-codechimp
 /tests/components/mastodon/ @fabaff @andrew-codechimp
 /homeassistant/components/matrix/ @PaarthShah
@@ -1260,6 +1264,8 @@ build.json @home-assistant/supervisor
 /tests/components/schedule/ @home-assistant/core
 /homeassistant/components/schlage/ @dknowles2
 /tests/components/schlage/ @dknowles2
+/homeassistant/components/scene_state/ @MarkGodwin
+/tests/components/scene_state/ @MarkGodwin
 /homeassistant/components/schluter/ @prairieapps
 /homeassistant/components/scrape/ @fabaff @gjohansson-ST
 /tests/components/scrape/ @fabaff @gjohansson-ST
