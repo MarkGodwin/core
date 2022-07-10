@@ -1,15 +1,10 @@
 {
   "domain": "gamma_light",
-  "name": "Gamma Light",
-  "config_flow": true,
-  "documentation": "https://www.home-assistant.io/integrations/gamma_light",
-  "requirements": [],
-  "ssdp": [],
-  "zeroconf": [],
-  "homekit": {},
-  "dependencies": [],
-  "codeowners": [
-    "@MarkGodwin"
-  ],
-  "iot_class": "calculated"
+  "integration_type": "helper",
+  "name": "Gamma Adjusted Light",
+  "documentation": "https://www.home-assistant.io/integrations/switch_as_x",
+  "codeowners": ["@markgodwin"],
+  "quality_scale": "silver",
+  "iot_class": "calculated",
+  "config_flow": true
 }

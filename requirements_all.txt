@@ -513,9 +513,6 @@ aurorapy==0.2.7
 # homeassistant.components.autarco
 autarco==2.0.0
 
-# homeassistant.components.mark_camera
-av==9.2.0
-
 # homeassistant.components.avea
 # avea==1.5.1
 
@@ -1585,6 +1582,9 @@ pigpio==1.78
 
 # homeassistant.components.pilight
 pilight==0.1.1
+
+# homeassistant.components.mark_camera
+pillow==9.1.1
 
 # homeassistant.components.doods
 # homeassistant.components.generic
