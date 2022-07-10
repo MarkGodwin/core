@@ -1,4 +1,4 @@
-"""Constants for the Switch as X integration."""
+"""Constants for the Gamma Adjusted Light integration."""
 
 from typing import Final
 

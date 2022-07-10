@@ -19,13 +19,15 @@ from homeassistant.helpers.schema_config_entry_flow import (
 from .const import DOMAIN, GAMMA, MIN_BRIGHTNESS
 
 
-def entity_selector_excluding_own(
+def applicable_light_entity_selector(
     handler: SchemaConfigFlowHandler | SchemaOptionsFlowHandler,
 ) -> vol.Schema:
-    """Return an entity selector which excludes our own entities, and entities that have already been wrapped."""
+    """Return an entity selector which allows selection of valid dimmable lights."""
 
+    # Excludes our own entities and lights that have already been wrapped
+    # No, this doesn't seem to work with yaml-defined entities.
     entity_registry = er.async_get(handler.hass)
-    our_entities = [
+    exclude_entities = [
         entry.entity_id
         for entry in entity_registry.entities.values()
         if entry.domain == Platform.LIGHT
@@ -36,7 +38,7 @@ def entity_selector_excluding_own(
     ]
 
     entity_selector_config = selector.EntitySelectorConfig(
-        domain=Platform.LIGHT, exclude_entities=our_entities
+        domain=Platform.LIGHT, exclude_entities=exclude_entities
     )
 
     return selector.EntitySelector(entity_selector_config)
@@ -49,7 +51,7 @@ def generate_config_schema(
     """Generate config schema."""
     return vol.Schema(
         {
-            vol.Required(CONF_ENTITY_ID): entity_selector_excluding_own(
+            vol.Required(CONF_ENTITY_ID): applicable_light_entity_selector(
                 handler,
             ),
             vol.Required(MIN_BRIGHTNESS, default=0): selector.NumberSelector(
@@ -92,8 +94,8 @@ def generate_options_schema(
             ),
             vol.Required(GAMMA, default=1): selector.NumberSelector(
                 selector.NumberSelectorConfig(
-                    min=0.1,
-                    max=5.0,
+                    min=0.3,
+                    max=3.0,
                     step=0.1,
                     unit_of_measurement="Gamma",
                     mode=selector.NumberSelectorMode.SLIDER,
