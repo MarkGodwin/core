@@ -19,10 +19,12 @@ from homeassistant.components.light import (
     DOMAIN as LIGHT_DOMAIN,
     ColorMode,
     LightEntity,
+    LightEntityFeature,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
+    ATTR_SUPPORTED_FEATURES,
     CONF_ENTITY_ID,
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
@@ -115,6 +117,12 @@ class GammaAdjustedLight(LightEntity):
         ) is None or state.state == STATE_UNAVAILABLE:
             self._attr_available = False
             return
+
+        self._attr_supported_features = state.attributes[ATTR_SUPPORTED_FEATURES] & (
+            LightEntityFeature.TRANSITION
+            | LightEntityFeature.FLASH
+            | LightEntityFeature.EFFECT
+        )
 
         # Set light modes according to child entity
         supported_modes = state.attributes.get(
