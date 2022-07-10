@@ -1,3 +1,7 @@
-"""Constants for the gamma_light integration."""
+"""Constants for the Switch as X integration."""
 
-DOMAIN = "gamma_light"
+from typing import Final
+
+DOMAIN: Final = "gamma_light"
+MIN_BRIGHTNESS: Final = "min_brightness"
+GAMMA: Final = "gamma"

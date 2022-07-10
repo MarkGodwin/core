@@ -9,6 +9,7 @@ FLOWS = {
         "filter",
         "generic_hygrostat",
         "generic_thermostat",
+        "gamma_light",
         "group",
         "history_stats",
         "integration",

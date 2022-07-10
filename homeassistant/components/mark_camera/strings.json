@@ -49,41 +49,41 @@
     "step": {
       "init": {
         "data": {
-          "still_image_url": "[%key:component::generic::config::step::user::data::still_image_url%]",
-          "stream_source": "[%key:component::generic::config::step::user::data::stream_source%]",
-          "rtsp_transport": "[%key:component::generic::config::step::user::data::rtsp_transport%]",
-          "authentication": "[%key:component::generic::config::step::user::data::authentication%]",
-          "limit_refetch_to_url_change": "[%key:component::generic::config::step::user::data::limit_refetch_to_url_change%]",
+          "still_image_url": "[%key:component::mark_camera::config::step::user::data::still_image_url%]",
+          "stream_source": "[%key:component::mark_camera::config::step::user::data::stream_source%]",
+          "rtsp_transport": "[%key:component::mark_camera::config::step::user::data::rtsp_transport%]",
+          "authentication": "[%key:component::mark_camera::config::step::user::data::authentication%]",
+          "limit_refetch_to_url_change": "[%key:component::mark_camera::config::step::user::data::limit_refetch_to_url_change%]",
           "password": "[%key:common::config_flow::data::password%]",
           "use_wallclock_as_timestamps": "Use wallclock as timestamps",
           "username": "[%key:common::config_flow::data::username%]",
-          "framerate": "[%key:component::generic::config::step::user::data::framerate%]",
+          "framerate": "[%key:component::mark_camera::config::step::user::data::framerate%]",
           "verify_ssl": "[%key:common::config_flow::data::verify_ssl%]",
-          "motion_sensor_id": "[%key:common::config_flow::data::motion_sensor_id%]",
-          "doorbell_sensor_id": "[%key:common::config_flow::data::doorbell_sensor_id%]"
+          "motion_sensor_id": "[%key:component::mark_camera::config::step::user::data::motion_sensor_id%]",
+          "doorbell_sensor_id": "[%key:component::mark_camera::config::step::user::data::doorbell_sensor_id%]"
         },
         "data_description": {
           "use_wallclock_as_timestamps": "This option may correct segmenting or crashing issues arising from buggy timestamp implementations on some cameras"
         }
       },
       "content_type": {
-        "description": "[%key:component::generic::config::step::content_type::description%]",
+        "description": "[%key:component::mark_camera::config::step::content_type::description%]",
         "data": {
-          "content_type": "[%key:component::generic::config::step::content_type::data::content_type%]"
+          "content_type": "[%key:component::mark_camera::config::step::content_type::data::content_type%]"
         }
       }
     },
     "error": {
       "unknown": "[%key:common::config_flow::error::unknown%]",
-      "already_exists": "[%key:component::generic::config::error::already_exists%]",
-      "unable_still_load": "[%key:component::generic::config::error::unable_still_load%]",
-      "no_still_image_or_stream_url": "[%key:component::generic::config::error::no_still_image_or_stream_url%]",
-      "invalid_still_image": "[%key:component::generic::config::error::invalid_still_image%]",
-      "template_error": "[%key:component::generic::config::error::template_error%]",
-      "timeout": "[%key:component::generic::config::error::timeout%]",
-      "stream_no_route_to_host": "[%key:component::generic::config::error::stream_no_route_to_host%]",
-      "stream_io_error": "[%key:component::generic::config::error::stream_io_error%]",
-      "stream_not_permitted": "[%key:component::generic::config::error::stream_not_permitted%]"
+      "already_exists": "[%key:component::mark_camera::config::error::already_exists%]",
+      "unable_still_load": "[%key:component::mark_camera::config::error::unable_still_load%]",
+      "no_still_image_or_stream_url": "[%key:component::mark_camera::config::error::no_still_image_or_stream_url%]",
+      "invalid_still_image": "[%key:component::mark_camera::config::error::invalid_still_image%]",
+      "template_error": "[%key:component::mark_camera::config::error::template_error%]",
+      "timeout": "[%key:component::mark_camera::config::error::timeout%]",
+      "stream_no_route_to_host": "[%key:component::mark_camera::config::error::stream_no_route_to_host%]",
+      "stream_io_error": "[%key:component::mark_camera::config::error::stream_io_error%]",
+      "stream_not_permitted": "[%key:component::mark_camera::config::error::stream_not_permitted%]"
     }
   }
 }
