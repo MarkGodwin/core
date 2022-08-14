@@ -1290,9 +1290,6 @@ phone-modem==0.1.1
 # homeassistant.components.pilight
 pilight==0.1.1
 
-# homeassistant.components.mark_camera
-pillow==9.1.1
-
 # homeassistant.components.doods
 # homeassistant.components.generic
 # homeassistant.components.image_upload
