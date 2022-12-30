@@ -1,12 +1,9 @@
 """Generic Camera with Device and linked motion sensors component."""
 from __future__ import annotations
 
-from typing import Any
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers import entity_registry as er
+from homeassistant.core import HomeAssistant
 
 DOMAIN = "mark_camera"
 PLATFORMS = [Platform.CAMERA, Platform.BINARY_SENSOR]
@@ -20,7 +17,7 @@ async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> Non
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up generic IP camera from a config entry."""
 
-    hass.config_entries.async_setup_platforms(entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     return True

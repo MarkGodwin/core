@@ -3798,6 +3798,12 @@
       "integration_type": "virtual",
       "supported_by": "denonavr"
     },
+    "mark_camera": {
+      "name": "Mark's Generic Camera",
+      "integration_type": "hub",
+      "config_flow": true,
+      "iot_class": "local_push"
+    },
     "martec": {
       "name": "Martec",
       "integration_type": "virtual",
@@ -5815,6 +5821,12 @@
       "config_flow": true,
       "iot_class": "local_push",
       "single_config_entry": true
+    },
+    "scene_state": {
+      "name": "Scene State",
+      "integration_type": "hub",
+      "config_flow": false,
+      "iot_class": "calculated"
     },
     "schlage": {
       "name": "Schlage",
@@ -7914,6 +7926,11 @@
       "config_flow": true,
       "iot_class": "local_polling"
     },
+    "gamma_light": {
+      "integration_type": "helper",
+      "config_flow": true,
+      "iot_class": "calculated"
+    },
     "group": {
       "integration_type": "helper",
       "config_flow": true,
@@ -8031,6 +8048,7 @@
     "energenie_power_sockets",
     "filesize",
     "filter",
+    "gamma_light",
     "garages_amsterdam",
     "generic",
     "generic_hygrostat",
