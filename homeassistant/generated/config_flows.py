@@ -205,7 +205,6 @@ FLOWS = {
         "fujitsu_fglair",
         "fully_kiosk",
         "fyta",
-        "gamma_light",
         "garages_amsterdam",
         "gardena_bluetooth",
         "gdacs",
