@@ -39,11 +39,17 @@ from homeassistant.const import (
     CONF_VERIFY_SSL,
     HTTP_BASIC_AUTHENTICATION,
     HTTP_DIGEST_AUTHENTICATION,
+    Platform,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult, UnknownFlow
 from homeassistant.exceptions import TemplateError
-from homeassistant.helpers import config_validation as cv, template as template_helper
+from homeassistant.helpers import (
+    config_validation as cv,
+    entity_registry as er,
+    selector,
+    template as template_helper,
+)
 from homeassistant.helpers.httpx_client import get_async_client
 from homeassistant.util import slugify
 
@@ -70,16 +76,35 @@ DEFAULT_DATA = {
     CONF_LIMIT_REFETCH_TO_URL_CHANGE: False,
     CONF_FRAMERATE: 2,
     CONF_VERIFY_SSL: True,
-    CONF_MOTION_SENSOR: "",
-    CONF_DOORBELL_SENSOR: "",
 }
 
 SUPPORTED_IMAGE_TYPES = {"png", "jpeg", "gif", "svg+xml", "webp"}
 IMAGE_PREVIEWS_ACTIVE = "previews"
 
 
+def applicable_binary_sensor_entity_selector(
+    hass: HomeAssistant,
+) -> vol.Schema:
+    """Return an entity selector which allows selection of valid dimmable lights."""
+
+    # Excludes our own entities
+    entity_registry = er.async_get(hass)
+    exclude_entities = [
+        entry.entity_id
+        for entry in entity_registry.entities.values()
+        if entry.domain == Platform.BINARY_SENSOR and (entry.platform == DOMAIN)
+    ]
+
+    entity_selector_config = selector.EntitySelectorConfig(
+        domain=Platform.BINARY_SENSOR, exclude_entities=exclude_entities
+    )
+
+    return selector.EntitySelector(entity_selector_config)
+
+
 def build_schema(
     user_input: Mapping[str, Any],
+    hass: HomeAssistant,
     is_options_flow: bool = False,
     show_advanced_options=False,
 ):
@@ -119,11 +144,11 @@ def build_schema(
         vol.Optional(
             CONF_MOTION_SENSOR,
             description={"suggested_value": user_input.get(CONF_MOTION_SENSOR, "")},
-        ): str,
+        ): applicable_binary_sensor_entity_selector(hass),
         vol.Optional(
             CONF_DOORBELL_SENSOR,
             description={"suggested_value": user_input.get(CONF_DOORBELL_SENSOR, "")},
-        ): str,
+        ): applicable_binary_sensor_entity_selector(hass),
     }
     if is_options_flow:
         spec[
@@ -363,7 +388,7 @@ class GenericIPCamConfigFlow(ConfigFlow, domain=DOMAIN):
             user_input = DEFAULT_DATA.copy()
         return self.async_show_form(
             step_id="user",
-            data_schema=build_schema(user_input),
+            data_schema=build_schema(user_input, hass),
             errors=errors,
         )
 
@@ -467,6 +492,7 @@ class GenericOptionsFlowHandler(OptionsFlow):
             step_id="init",
             data_schema=build_schema(
                 user_input or self.config_entry.options,
+                hass,
                 True,
                 self.show_advanced_options,
             ),
