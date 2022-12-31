@@ -57,8 +57,8 @@
           "username": "[%key:common::config_flow::data::username%]",
           "framerate": "[%key:component::mark_camera::config::step::user::data::framerate%]",
           "verify_ssl": "[%key:common::config_flow::data::verify_ssl%]",
-          "motion_sensor_id": "[%key:component::mark_camera::config::step::user::data::motion_sensor_id%]",
-          "doorbell_sensor_id": "[%key:component::mark_camera::config::step::user::data::doorbell_sensor_id%]"
+          "motion_sensor_id": "Entity ID of Motion Sensor",
+          "doorbell_sensor_id": "Entity ID of Doorbell Sensor"
         },
         "data_description": {
           "use_wallclock_as_timestamps": "This option may correct segmenting or crashing issues arising from buggy timestamp implementations on some cameras"

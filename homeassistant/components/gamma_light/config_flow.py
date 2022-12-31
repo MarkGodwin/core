@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, cast
+from typing import Any
 
 import voluptuous as vol
 
 from homeassistant.const import CONF_ENTITY_ID, Platform
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er, selector
 from homeassistant.helpers.schema_config_entry_flow import (
     SchemaCommonFlowHandler,
@@ -20,13 +21,12 @@ from .const import DOMAIN, GAMMA, MIN_BRIGHTNESS
 
 
 def applicable_light_entity_selector(
-    handler: SchemaConfigFlowHandler,
+    hass: HomeAssistant,
 ) -> vol.Schema:
     """Return an entity selector which allows selection of valid dimmable lights."""
 
     # Excludes our own entities and lights that have already been wrapped
-    # No, this doesn't seem to work with yaml-defined entities.
-    entity_registry = er.async_get(handler.hass)
+    entity_registry = er.async_get(hass)
     exclude_entities = [
         entry.entity_id
         for entry in entity_registry.entities.values()
@@ -49,7 +49,7 @@ async def generate_config_schema(handler: SchemaCommonFlowHandler) -> vol.Schema
     return vol.Schema(
         {
             vol.Required(CONF_ENTITY_ID): applicable_light_entity_selector(
-                cast(SchemaConfigFlowHandler, handler.parent_handler),
+                handler.parent_handler.hass,
             ),
             vol.Required(MIN_BRIGHTNESS, default=0): selector.NumberSelector(
                 selector.NumberSelectorConfig(

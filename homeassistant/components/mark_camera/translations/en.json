@@ -77,7 +77,9 @@
                     "stream_source": "Stream Source URL (e.g. rtsp://...)",
                     "use_wallclock_as_timestamps": "Use wallclock as timestamps",
                     "username": "Username",
-                    "verify_ssl": "Verify SSL certificate"
+                    "verify_ssl": "Verify SSL certificate",
+                    "motion_sensor_id": "Entity ID of Motion Sensor",
+                    "doorbell_sensor_id": "Entity ID of Doorbell Sensor"
                 },
                 "data_description": {
                     "use_wallclock_as_timestamps": "This option may correct segmenting or crashing issues arising from buggy timestamp implementations on some cameras"
