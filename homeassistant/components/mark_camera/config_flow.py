@@ -462,6 +462,7 @@ class GenericOptionsFlowHandler(OptionsFlow):
                 self.user_input = data
                 # temporary preview for user to check the image
                 self.context["preview_cam"] = data
+                return await self.async_step_confirm_still()
         return self.async_show_form(
             step_id="init",
             data_schema=build_schema(
