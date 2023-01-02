@@ -23,6 +23,7 @@ from homeassistant.components.light import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
+    ATTR_ICON,
     ATTR_SUPPORTED_FEATURES,
     CONF_ENTITY_ID,
     SERVICE_TURN_OFF,
@@ -60,6 +61,8 @@ async def async_setup_entry(
         registry, config_entry.options[CONF_ENTITY_ID]
     )
     wrapped_light = registry.async_get(entity_id)
+    if wrapped_light is None:
+        return
 
     device_id = wrapped_light.device_id if wrapped_light else None
 
@@ -75,6 +78,7 @@ async def async_setup_entry(
                 device_id,
                 min_brightness,
                 gamma,
+                wrapped_light.icon,
             )
         ]
     )
@@ -98,6 +102,7 @@ class GammaAdjustedLight(LightEntity):
         device_id: str | None = None,
         min_brightness: int = 0,
         gamma: float = 1.0,
+        icon: str | None = None,
     ) -> None:
         """Initialize Light wrapper."""
         self._device_id = device_id
@@ -106,6 +111,7 @@ class GammaAdjustedLight(LightEntity):
         self._light_entity_id = light_entity_id
         self._min_brightness = min_brightness
         self._gamma = gamma
+        self._attr_icon = icon
 
     @callback
     def async_state_changed_listener(self, event: Event | None = None) -> None:
@@ -121,6 +127,7 @@ class GammaAdjustedLight(LightEntity):
             | LightEntityFeature.FLASH
             | LightEntityFeature.EFFECT
         )
+        self._attr_icon = state.attributes.get(ATTR_ICON)
 
         # Set light modes according to child entity
         supported_modes = state.attributes.get(
