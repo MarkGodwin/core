@@ -1,15 +1,13 @@
 {
   "domain": "scene_state",
   "name": "Scene State",
+  "codeowners": ["@MarkGodwin"],
   "config_flow": false,
+  "dependencies": [],
   "documentation": "https://www.home-assistant.io/integrations/scene_state",
+  "homekit": {},
+  "iot_class": "calculated",
   "requirements": [],
   "ssdp": [],
-  "zeroconf": [],
-  "homekit": {},
-  "dependencies": [],
-  "codeowners": [
-    "@MarkGodwin"
-  ],
-  "iot_class": "calculated"
+  "zeroconf": []
 }
