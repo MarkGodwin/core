@@ -17,7 +17,7 @@ from homeassistant.helpers.schema_config_entry_flow import (
     wrapped_entity_config_entry_title,
 )
 
-from .const import DOMAIN, GAMMA, MIN_BRIGHTNESS
+from .const import DOMAIN, GAMMA, MAX_BRIGHTNESS, MIN_BRIGHTNESS
 
 
 def applicable_light_entity_selector(
@@ -60,6 +60,15 @@ async def generate_config_schema(handler: SchemaCommonFlowHandler) -> vol.Schema
                     mode=selector.NumberSelectorMode.SLIDER,
                 ),
             ),
+            vol.Required(MAX_BRIGHTNESS, default=100): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1,
+                    max=100,
+                    step=1,
+                    unit_of_measurement="percent",
+                    mode=selector.NumberSelectorMode.SLIDER,
+                ),
+            ),
             vol.Required(GAMMA, default=1): selector.NumberSelector(
                 selector.NumberSelectorConfig(
                     min=0.1,
@@ -81,6 +90,15 @@ async def generate_options_schema(handler: SchemaCommonFlowHandler) -> vol.Schem
                 selector.NumberSelectorConfig(
                     min=0,
                     max=99,
+                    step=1,
+                    unit_of_measurement="percent",
+                    mode=selector.NumberSelectorMode.SLIDER,
+                ),
+            ),
+            vol.Required(MAX_BRIGHTNESS, default=100): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1,
+                    max=100,
                     step=1,
                     unit_of_measurement="percent",
                     mode=selector.NumberSelectorMode.SLIDER,
@@ -111,6 +129,7 @@ OPTIONS_FLOW: dict[str, SchemaFlowFormStep | SchemaFlowMenuStep] = {
 class GammaLightConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
     """Handle a config flow for gamma_light."""
 
+    VERSION = 2
     config_flow = CONFIG_FLOW
     options_flow = OPTIONS_FLOW
 

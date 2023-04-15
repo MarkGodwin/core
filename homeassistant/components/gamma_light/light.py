@@ -36,7 +36,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 
-from .const import GAMMA, MIN_BRIGHTNESS
+from .const import GAMMA, MAX_BRIGHTNESS, MIN_BRIGHTNESS
 
 FORWARDED_ATTRIBUTES = frozenset(
     {
@@ -67,6 +67,7 @@ async def async_setup_entry(
     device_id = wrapped_light.device_id if wrapped_light else None
 
     min_brightness = int(config_entry.options[MIN_BRIGHTNESS])
+    max_brightness = int(config_entry.options[MAX_BRIGHTNESS])
     gamma = float(config_entry.options[GAMMA])
 
     async_add_entities(
@@ -77,6 +78,7 @@ async def async_setup_entry(
                 config_entry.entry_id,
                 device_id,
                 min_brightness,
+                max_brightness,
                 gamma,
                 wrapped_light.icon,
             )
@@ -101,6 +103,7 @@ class GammaAdjustedLight(LightEntity):
         unique_id: str | None,
         device_id: str | None = None,
         min_brightness: int = 0,
+        max_brightness: int = 100,
         gamma: float = 1.0,
         icon: str | None = None,
     ) -> None:
@@ -110,6 +113,7 @@ class GammaAdjustedLight(LightEntity):
         self._attr_unique_id = unique_id
         self._light_entity_id = light_entity_id
         self._min_brightness = min_brightness
+        self._max_brightness = max_brightness
         self._gamma = gamma
         self._attr_icon = icon
 
@@ -178,7 +182,7 @@ class GammaAdjustedLight(LightEntity):
         if self._attr_is_on and self._attr_color_mode != ColorMode.ONOFF:
             # Calculate the adjusted brightness from the actual dimmer value, unless it's the value we asked for
             brightness = state.attributes[ATTR_BRIGHTNESS]
-            if brightness != self._last_target_brightness:
+            if abs(brightness - self._last_target_brightness) > 1:
                 self._last_target_brightness = 0
                 self._attr_brightness = self.__calculate_reverse_brightness(brightness)
 
@@ -257,8 +261,10 @@ class GammaAdjustedLight(LightEntity):
     def __calculate_reverse_brightness(self, brightness: int) -> int:
         # Account for the minimum
         brightness_pct = brightness * 100 / 255
-        brightness_adjusted = max(0, (brightness_pct - self._min_brightness)) / (
-            100 - self._min_brightness
+        brightness_adjusted = min(
+            1.0,
+            max(0, (brightness_pct - self._min_brightness))
+            / (self._max_brightness - self._min_brightness),
         )
         # Inverse gamma correct
         brightness_gamma = pow(brightness_adjusted, 1 / self._gamma)
@@ -267,9 +273,11 @@ class GammaAdjustedLight(LightEntity):
     def __calculate_adjusted_brightness(self, brightness: int) -> int:
         # Gamma correct
         target_brightness_gamma = pow(brightness / 255, self._gamma) * 100
-        # Adjust for minimum
+        # Adjust for minimum and maximum
         target_brightness_pct = (
-            target_brightness_gamma * (100 - self._min_brightness) / 100
+            target_brightness_gamma
+            * (self._max_brightness - self._min_brightness)
+            / 100
             + self._min_brightness
         )
         return max(1, round(target_brightness_pct * 255 / 100))
