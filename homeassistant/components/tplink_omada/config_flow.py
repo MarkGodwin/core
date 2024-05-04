@@ -27,7 +27,13 @@ from homeassistant.config_entries import (
     OptionsFlow,
     OptionsFlowWithConfigEntry,
 )
-from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME, CONF_VERIFY_SSL
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_PASSWORD,
+    CONF_USERNAME,
+    CONF_VERIFY_SSL,
+    UnitOfTime,
+)
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import (
@@ -35,16 +41,18 @@ from homeassistant.helpers.aiohttp_client import (
     async_get_clientsession,
 )
 
-from .const import DOMAIN
+from .const import (
+    CONF_SITE,
+    DEFAULT_TRACKER_POLL_INTERVAL,
+    DOMAIN,
+    OPT_DEVICE_TRACKER,
+    OPT_SCANNED_CLIENTS,
+    OPT_TRACKED_CLIENTS,
+    OPT_TRACKER_POLL_INTERVAL,
+)
 from .controller import OmadaSiteController
 
 _LOGGER = logging.getLogger(__name__)
-
-CONF_SITE = "site"
-
-OPT_DEVICE_TRACKER = "device_tracker"
-OPT_TRACKED_CLIENTS = "tracked_clients"
-OPT_SCANNED_CLIENTS = "scanned_clients"
 
 _STEP_DEVICE_TRACKER = "device_tracker"
 
@@ -315,6 +323,20 @@ class OptionsFlowHandler(OptionsFlowWithConfigEntry):
                         OPT_TRACKED_CLIENTS,
                         default=self.options.get(OPT_TRACKED_CLIENTS, []),
                     ): _get_clients_selector(clients),
+                    vol.Required(
+                        OPT_TRACKER_POLL_INTERVAL,
+                        default=self.options.get(
+                            OPT_TRACKER_POLL_INTERVAL, DEFAULT_TRACKER_POLL_INTERVAL
+                        ),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=30,
+                            max=600,
+                            step=5,
+                            unit_of_measurement=UnitOfTime.SECONDS,
+                            mode=selector.NumberSelectorMode.SLIDER,
+                        )
+                    ),
                 }
             )
 

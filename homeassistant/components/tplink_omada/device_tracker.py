@@ -18,13 +18,13 @@ from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .config_flow import (
+from .const import (
     CONF_SITE,
+    DOMAIN,
     OPT_DEVICE_TRACKER,
     OPT_SCANNED_CLIENTS,
     OPT_TRACKED_CLIENTS,
 )
-from .const import DOMAIN
 from .controller import OmadaClientsCoordinator, OmadaSiteController
 
 _LOGGER = logging.getLogger(__name__)
@@ -100,7 +100,6 @@ class OmadaDeviceTrackerEntityDescription(EntityDescription):
         [OmadaClientsCoordinator, str], OmadaWirelessClient | None
     ]
     ip_address_fn: Callable[[OmadaWirelessClient | None], str | None]
-    mac_address_fn: Callable[[OmadaWirelessClient | None], str | None]
     hostname_fn: Callable[[OmadaWirelessClient | None], str | None]
     location_fn: Callable[[OmadaWirelessClient | None], str | None]
     is_connected_fn: Callable[[OmadaWirelessClient | None], bool]
@@ -112,7 +111,6 @@ DEVICE_TRACKERS = [
         key="device_tracker",
         coordinator_update_func=lambda coordinator, mac: coordinator.data.get(mac),
         ip_address_fn=lambda client: client.ip if client else None,
-        mac_address_fn=lambda client: client.mac if client else None,
         hostname_fn=lambda client: client.host_name if client else None,
         location_fn=lambda client: client.ap_name if client else None,
         is_connected_fn=lambda client: client.is_active if client else False,
@@ -174,7 +172,7 @@ class OmadaClientScannerEntity(OmadaBaseTrackerEntity, ScannerEntity):
     @property
     def mac_address(self) -> str | None:
         """Return the mac address of the device."""
-        return self.entity_description.mac_address_fn(self._client_details)
+        return self._client_id
 
     @property
     def hostname(self) -> str | None:

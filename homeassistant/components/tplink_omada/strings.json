@@ -52,11 +52,13 @@
       "device_tracker": {
         "data": {
           "tracked_clients": "Track by nearest access point",
-          "scanned_clients": "Track by network connection"
+          "scanned_clients": "Track by network connection",
+          "tracker_poll_interval": "Polling interval (seconds)"
         },
         "data_description": {
           "tracked_clients": "Select clients to track approximate location based on their nearest Wi-Fi access point.",
-          "scanned_clients": "Select clients to track home/away state from on Wi-Fi connection."
+          "scanned_clients": "Select clients to track home/away state from on Wi-Fi connection.",
+          "tracker_poll_interval": "The interval in seconds between polling Omada controller for device tracking."
         },
         "title": "Device Tracker Options"
       }

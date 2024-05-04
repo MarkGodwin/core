@@ -11,16 +11,15 @@ from homeassistant.components.tplink_omada.config_flow import (
     OPT_DEVICE_TRACKER,
     OPT_SCANNED_CLIENTS,
     OPT_TRACKED_CLIENTS,
+    OPT_TRACKER_POLL_INTERVAL,
 )
 from homeassistant.components.tplink_omada.const import DOMAIN
-from homeassistant.components.tplink_omada.coordinator import POLL_CLIENTS
 from homeassistant.core import HomeAssistant
 from homeassistant.util.dt import utcnow
 
 from tests.common import MockConfigEntry, async_fire_time_changed
 
-UPDATE_INTERVAL = timedelta(seconds=10)
-POLL_INTERVAL = timedelta(seconds=POLL_CLIENTS + 10)
+POLL_INTERVAL = timedelta(seconds=20)
 
 MOCK_ENTRY_DATA = {
     "host": "https://fake.omada.host",
@@ -45,6 +44,7 @@ async def init_integration(
             OPT_DEVICE_TRACKER: True,
             OPT_TRACKED_CLIENTS: ["2E-DC-E1-C4-37-D3"],
             OPT_SCANNED_CLIENTS: ["2C-71-FF-ED-34-83"],
+            OPT_TRACKER_POLL_INTERVAL: 10,
         },
         unique_id="12345",
     )

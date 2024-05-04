@@ -15,8 +15,8 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 
-from .config_flow import CONF_SITE, OPT_DEVICE_TRACKER, create_omada_client
-from .const import DOMAIN
+from .config_flow import create_omada_client
+from .const import CONF_SITE, DOMAIN, OPT_DEVICE_TRACKER
 from .controller import OmadaSiteController
 
 PLATFORMS: list[Platform] = [
@@ -51,7 +51,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         ) from ex
 
     site_client = await client.get_site_client(OmadaSite("", entry.data[CONF_SITE]))
-    controller = OmadaSiteController(hass, site_client)
+    controller = OmadaSiteController(hass, site_client, entry.options)
     gateway_coordinator = await controller.get_gateway_coordinator()
     if gateway_coordinator:
         await gateway_coordinator.async_config_entry_first_refresh()

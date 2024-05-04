@@ -1,15 +1,30 @@
 """Controller for sharing Omada API coordinators between platforms."""
 
+import dataclasses
+from dataclasses import dataclass
+from typing import Any
+
 from tplink_omada_client import OmadaSiteClient
 from tplink_omada_client.devices import OmadaSwitch
 
 from homeassistant.core import HomeAssistant
 
+from .const import DEFAULT_TRACKER_POLL_INTERVAL
 from .coordinator import (
     OmadaClientsCoordinator,
     OmadaGatewayCoordinator,
     OmadaSwitchPortCoordinator,
 )
+
+
+@dataclass
+class OmadaIntegrationOptions:
+    """Options for the Omada integration."""
+
+    device_tracker: bool = False
+    tracked_clients: list[str] = []
+    scanned_clients: list[str] = []
+    tracker_poll_interval: int = DEFAULT_TRACKER_POLL_INTERVAL
 
 
 class OmadaSiteController:
@@ -19,12 +34,32 @@ class OmadaSiteController:
     _initialized_gateway_coordinator = False
     _clients_coordinator: OmadaClientsCoordinator | None = None
 
-    def __init__(self, hass: HomeAssistant, omada_client: OmadaSiteClient) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        omada_client: OmadaSiteClient,
+        options: dict[str, Any],
+    ) -> None:
         """Create the controller."""
         self._hass = hass
         self._omada_client = omada_client
+        self._options = self._get_omada_options(options)
 
         self._switch_port_coordinators: dict[str, OmadaSwitchPortCoordinator] = {}
+
+    def _get_omada_options(self, options: dict[str, Any]) -> OmadaIntegrationOptions:
+        return OmadaIntegrationOptions(
+            **{
+                k: v
+                for k, v in options.items()
+                if k in dataclasses.fields(OmadaIntegrationOptions)
+            }
+        )
+
+    @property
+    def options(self) -> OmadaIntegrationOptions:
+        """Get the options for the integration."""
+        return self._options
 
     @property
     def omada_client(self) -> OmadaSiteClient:
@@ -61,7 +96,9 @@ class OmadaSiteController:
         """Get coordinator for site's clients."""
         if not self._clients_coordinator:
             self._clients_coordinator = OmadaClientsCoordinator(
-                self._hass, self._omada_client
+                self._hass,
+                self._omada_client,
+                self._options,
             )
 
         return self._clients_coordinator

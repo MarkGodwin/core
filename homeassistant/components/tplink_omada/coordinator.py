@@ -19,7 +19,6 @@ T = TypeVar("T")
 
 POLL_SWITCH_PORT = 300
 POLL_GATEWAY = 300
-POLL_CLIENTS = 300
 
 
 class OmadaCoordinator(DataUpdateCoordinator[dict[str, T]], Generic[T]):
@@ -97,9 +96,14 @@ class OmadaGatewayCoordinator(OmadaCoordinator[OmadaGateway]):
 class OmadaClientsCoordinator(OmadaCoordinator[OmadaWirelessClient]):
     """Coordinator for gettings details about the site's connected clients."""
 
-    def __init__(self, hass: HomeAssistant, omada_client: OmadaSiteClient) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        omada_client: OmadaSiteClient,
+        options: OmadaIntegrationOptions,
+    ) -> None:
         """Initialize my coordinator."""
-        super().__init__(hass, omada_client, "ClientsList", POLL_CLIENTS)
+        super().__init__(hass, omada_client, "ClientsList", poll_interval)
 
     async def poll_update(self) -> dict[str, OmadaWirelessClient]:
         """Poll the site's current active wi-fi clients."""
