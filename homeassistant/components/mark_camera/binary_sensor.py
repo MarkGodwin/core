@@ -1,13 +1,12 @@
 """Support for IP Cameras."""
+
 from __future__ import annotations
 
-from homeassistant.components.binary_sensor import (
-    DEVICE_CLASS_MOTION,
-    DEVICE_CLASS_OCCUPANCY,
-)
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.group.binary_sensor import BinarySensorGroup
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import DOMAIN
@@ -56,12 +55,14 @@ class BinarySensorMirror(BinarySensorGroup):
         usage: bool,
         title,
         entity_id,
-    ):
+    ) -> None:
         """Initialize a generic camera's linked sensor. We simply use a Group of one to duplicate the sensor."""
         super().__init__(
             identifier + ("_motion" if usage else "_doorbell"),
             title + (" Motion" if usage else " Doorbell"),
-            DEVICE_CLASS_MOTION if usage else DEVICE_CLASS_OCCUPANCY,
+            BinarySensorDeviceClass.MOTION
+            if usage
+            else BinarySensorDeviceClass.OCCUPANCY,
             [entity_id],
             None,
         )
@@ -71,7 +72,7 @@ class BinarySensorMirror(BinarySensorGroup):
         self._title = title
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return Device description based on camera name."""
         return {
             "identifiers": {
