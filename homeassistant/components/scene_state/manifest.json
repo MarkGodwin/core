@@ -3,7 +3,7 @@
   "name": "Scene State",
   "codeowners": ["@MarkGodwin"],
   "config_flow": false,
-  "dependencies": [],
+  "dependencies": ["scene"],
   "documentation": "https://www.home-assistant.io/integrations/scene_state",
   "homekit": {},
   "iot_class": "calculated",
