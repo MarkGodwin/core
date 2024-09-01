@@ -1,35 +1,39 @@
 {
-    "title": "Adjust the dimming behavior of a light",
     "config": {
         "step": {
             "user": {
-                "description": "Pick a light that you want to adjust. A wrapper will be created, and the original light will be hidden.",
                 "data": {
                     "entity_id": "Light",
-                    "min_brightness": "Minimum brightness allowed (%)",
-                    "gamma": "Gamma"
+                    "gamma": "Gamma",
+                    "max_brightness": "Maximum brightness allowed (%)",
+                    "min_brightness": "Minimum brightness allowed (%)"
                 },
                 "data_description": {
-                    "min_brightness": "Choose the value at which your light starts to glow",
-                    "gamma": "Increase this value if there is no visible difference between high brightness levels"
-                }
+                    "gamma": "Increase this value if there is no visible difference between high brightness levels",
+                    "max_brightness": "Choose the maximum brightness you want to use",
+                    "min_brightness": "Choose the value at which your light starts to glow"
+                },
+                "description": "Pick a light that you want to adjust. A wrapper will be created, and the original light will be hidden."
             }
         }
     },
     "options": {
         "step": {
             "init": {
-                "description": "Adjust the dimming parameters.",
                 "data": {
                     "entity_id": "Light",
-                    "min_brightness": "Minimum brightness allowed (%)",
-                    "gamma": "Gamma"
+                    "gamma": "Gamma",
+                    "max_brightness": "Maximum brightness allowed (%)",
+                    "min_brightness": "Minimum brightness allowed (%)"
                 },
                 "data_description": {
-                    "min_brightness": "Choose the value at which your light starts to glow",
-                    "gamma": "Increase this value if there is no visible difference between high brightness levels"
-                }
+                    "gamma": "Increase this value if there is no visible difference between high brightness levels",
+                    "max_brightness": "Choose the maximum brightness you want to use",
+                    "min_brightness": "Choose the value at which your light starts to glow"
+                },
+                "description": "Configure the dimming behaviour of the light."
             }
         }
-    }
+    },
+    "title": "Adjust the dimming behavior of a light"
 }

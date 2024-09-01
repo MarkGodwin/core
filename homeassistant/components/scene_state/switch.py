@@ -10,11 +10,15 @@ from homeassistant.components.cover import (
 )
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
+    ATTR_COLOR_MODE,
     ATTR_COLOR_TEMP,
+    ATTR_COLOR_TEMP_KELVIN,
+    ATTR_HS_COLOR,
     ATTR_RGB_COLOR,
     ATTR_RGBW_COLOR,
     ATTR_RGBWW_COLOR,
     ATTR_SUPPORTED_COLOR_MODES,
+    ATTR_XY_COLOR,
     ColorMode,
 )
 from homeassistant.components.switch import SwitchEntity
@@ -76,6 +80,81 @@ async def async_setup_entry(
 ) -> None:
     """Set up entry."""
     return
+
+
+def _hs_compare(ch: int, cs: int, sh: int, ss: int) -> bool:
+    return abs(ch - sh) < 5 and abs(cs - ss) < 2
+
+
+def _xy_compare(cx: int, cy: int, sx: int, sy: int) -> bool:
+    return abs(cx - sx) < 0.05 and abs(cy - sy) < 0.05
+
+
+def _rgb_compare(cr: int, cg: int, cb: int, sr: int, sg: int, sb: int) -> bool:
+    return abs(cr - sr) < 3 and abs(cg - sg) < 3 and abs(cb - sb) < 3
+
+
+def _rgbw_compare(
+    cr: int, cg: int, cb: int, cw: int, sr: int, sg: int, sb: int, sw: int
+) -> bool:
+    return (
+        abs(cr - sr) < 3 and abs(cg - sg) < 3 and abs(cb - sb) < 3 and abs(cw - sw) < 3
+    )
+
+
+def _rgbww_compare(
+    cr: int,
+    cg: int,
+    cb: int,
+    cw: int,
+    cww: int,
+    sr: int,
+    sg: int,
+    sb: int,
+    sw: int,
+    sww: int,
+) -> bool:
+    return (
+        abs(cr - sr) < 3
+        and abs(cg - sg) < 3
+        and abs(cb - sb) < 3
+        and abs(cw - sw) < 3
+        and abs(cww - sww) < 3
+    )
+
+
+simple_brightness_comparer = (
+    ATTR_BRIGHTNESS,
+    lambda curr, scene: abs(curr - scene) < 3.0,
+)
+
+mode_comparers = {
+    ColorMode.BRIGHTNESS: [simple_brightness_comparer],
+    ColorMode.COLOR_TEMP: [
+        simple_brightness_comparer,
+        (ATTR_COLOR_TEMP_KELVIN, lambda curr, scene: abs(curr - scene) < 50),
+    ],
+    ColorMode.HS: [
+        simple_brightness_comparer,
+        (ATTR_HS_COLOR, lambda curr, scene: _hs_compare(*curr, *scene)),
+    ],
+    ColorMode.XY: [
+        simple_brightness_comparer,
+        (ATTR_XY_COLOR, lambda curr, scene: _xy_compare(*curr, *scene)),
+    ],
+    ColorMode.RGB: [
+        ATTR_RGB_COLOR,
+        lambda curr, scene: _rgb_compare(*curr, *scene),
+    ],
+    ColorMode.RGBW: [
+        ATTR_RGBW_COLOR,
+        lambda curr, scene: _rgbw_compare(*curr, *scene),
+    ],
+    ColorMode.RGBWW: [
+        ATTR_RGBWW_COLOR,
+        lambda curr, scene: _rgbww_compare(*curr, *scene),
+    ],
+}
 
 
 class SceneStateSwitch(SwitchEntity):
@@ -142,69 +221,47 @@ class SceneStateSwitch(SwitchEntity):
         currentState = self.hass.states.get(sceneState.entity_id)
         return currentState is not None and currentState.state == sceneState.state
 
-    def _compare_light_state(self, sceneState) -> bool:
+    def _compare_light_state(self, scene_state) -> bool:
         _LOGGER.debug(
             "%s - Comparing light state for %s(%s)",
             self.name,
-            sceneState.name,
-            sceneState.entity_id,
+            scene_state.name,
+            scene_state.entity_id,
         )
-        currentState = self.hass.states.get(sceneState.entity_id)
-        if currentState is None:
+        current_state = self.hass.states.get(scene_state.entity_id)
+        if current_state is None:
             return False
-        if currentState.state != sceneState.state:
+        if current_state.state != scene_state.state:
             _LOGGER.debug(
-                "State does not match: %s != %s", currentState.state, sceneState.state
+                "State does not match: %s != %s", current_state.state, scene_state.state
             )
             return False
 
-        if currentState.state == "off":
+        if current_state.state == "off":
             # Off is off, regardless of colour
             _LOGGER.debug("State matches off")
             return True
 
-        # Compare relevant attributes
-        supported_color_modes = currentState.attributes.get(
-            ATTR_SUPPORTED_COLOR_MODES, []
-        )
+        if current_state.attributes.get(ATTR_COLOR_MODE) != scene_state.attributes.get(
+            ATTR_COLOR_MODE
+        ):
+            return False
 
-        fuzzyAttrs = {
-            ColorMode.BRIGHTNESS: ATTR_BRIGHTNESS,
-            ColorMode.COLOR_TEMP: ATTR_COLOR_TEMP,
-        }
+        current_mode = current_state.attributes.get(ATTR_COLOR_MODE)
 
-        listAttrs = {
-            ColorMode.RGB: ATTR_RGB_COLOR,
-            ColorMode.RGBW: ATTR_RGBW_COLOR,
-            ColorMode.RGBWW: ATTR_RGBWW_COLOR,
-        }
+        comparers = mode_comparers.get(current_mode)
 
-        for key in supported_color_modes:
-            attr = fuzzyAttrs.get(key)
-
-            if attr is not None:
-                _LOGGER.debug(
-                    "%s Comparing %s for %s", self.name, attr, sceneState.name
-                )
+        if comparers is not None:
+            for attr, comparer in comparers:
                 _LOGGER.debug(
                     "Current %s: %d, Scene state: %d",
                     attr,
-                    currentState.attributes.get(attr),
-                    sceneState.attributes.get(attr),
+                    current_state.attributes.get(attr),
+                    scene_state.attributes.get(attr),
                 )
-                if (
-                    abs(
-                        currentState.attributes.get(attr)
-                        - sceneState.attributes.get(attr)
-                    )
-                    > 3
+                if not comparer(
+                    current_state.attributes.get(attr), scene_state.attributes.get(attr)
                 ):
-                    return False
-            else:
-                attr = listAttrs.get(key)
-                if attr is not None and currentState.attributes.get(
-                    attr
-                ) != sceneState.attributes.get(attr):
                     return False
 
         _LOGGER.debug("All supported colour mode attributes match")
