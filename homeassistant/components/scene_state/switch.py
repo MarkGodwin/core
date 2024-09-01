@@ -1,12 +1,12 @@
 """Platform for scene state switch integration."""
+
 import logging
-from typing import List, Optional
+from typing import Any
 
 from homeassistant.components.cover import (
     ATTR_CURRENT_POSITION,
     ATTR_CURRENT_TILT_POSITION,
-    SUPPORT_SET_POSITION,
-    SUPPORT_SET_TILT_POSITION,
+    CoverEntityFeature,
 )
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -15,26 +15,31 @@ from homeassistant.components.light import (
     ATTR_RGBW_COLOR,
     ATTR_RGBWW_COLOR,
     ATTR_SUPPORTED_COLOR_MODES,
-    COLOR_MODE_BRIGHTNESS,
-    COLOR_MODE_COLOR_TEMP,
-    COLOR_MODE_RGB,
-    COLOR_MODE_RGBW,
-    COLOR_MODE_RGBWW,
+    ColorMode,
 )
 from homeassistant.components.switch import SwitchEntity
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     ATTR_SUPPORTED_FEATURES,
     EVENT_STATE_CHANGED,
     SERVICE_TURN_ON,
 )
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 SCENE_DATA_PLATFORM = "homeassistant_scene"
 DATA_PLATFORM = "switch"
 _LOGGER = logging.getLogger(__name__)
 
 
-def setup_platform(hass, config, add_entities, discovery_info=None):
+def setup_platform(
+    hass: HomeAssistant,
+    config: ConfigType,
+    add_entities: AddEntitiesCallback,
+    discovery_info: DiscoveryInfoType | None = None,
+) -> None:
     """Set up the scene switch platform."""
 
     # Get the scenes registered with HA
@@ -64,7 +69,11 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     hass.bus.async_listen(EVENT_STATE_CHANGED, _state_changed)
 
 
-async def async_setup_entry(hass, config_entry, async_add_devices):
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_devices: AddEntitiesCallback,
+) -> None:
     """Set up entry."""
     return
 
@@ -72,7 +81,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 class SceneStateSwitch(SwitchEntity):
     """Representation of a Switch."""
 
-    def __init__(self, sceneId, sceneName, icon):
+    def __init__(self, sceneId, sceneName, icon) -> None:
         """Initialize the switch."""
         self._state = False
         self._sceneId = sceneId
@@ -81,16 +90,16 @@ class SceneStateSwitch(SwitchEntity):
         _LOGGER.info("Creating scene state switch for scene %s", sceneId)
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return the name of the switch."""
         return self._sceneName + " Scene Switch"
 
     @property
-    def is_on(self):
+    def is_on(self) -> bool:
         """Return true if the entity state matches the scene."""
         return self._state
 
-    async def async_turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
         # Call the service to activate the attached scene
         self._state = True
@@ -98,7 +107,7 @@ class SceneStateSwitch(SwitchEntity):
             "scene", SERVICE_TURN_ON, {ATTR_ENTITY_ID: self._sceneId}, blocking=False
         )
 
-    async def async_turn_off(self, **kwargs):
+    async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
         # You can't turn a scene off, but we will try to re-apply the scene
         self._state = False
@@ -113,11 +122,11 @@ class SceneStateSwitch(SwitchEntity):
         return False
 
     @property
-    def icon(self) -> Optional[str]:
+    def icon(self) -> str | None:
         """Return the icon to use in the frontend, if any."""
         return self._icon
 
-    def get_tracked_entities(self) -> List[str]:
+    def get_tracked_entities(self) -> list[str]:
         """Get the entities which are tracked by the scene."""
         if self.hass is None:
             return []
@@ -160,14 +169,14 @@ class SceneStateSwitch(SwitchEntity):
         )
 
         fuzzyAttrs = {
-            COLOR_MODE_BRIGHTNESS: ATTR_BRIGHTNESS,
-            COLOR_MODE_COLOR_TEMP: ATTR_COLOR_TEMP,
+            ColorMode.BRIGHTNESS: ATTR_BRIGHTNESS,
+            ColorMode.COLOR_TEMP: ATTR_COLOR_TEMP,
         }
 
         listAttrs = {
-            COLOR_MODE_RGB: ATTR_RGB_COLOR,
-            COLOR_MODE_RGBW: ATTR_RGBW_COLOR,
-            COLOR_MODE_RGBWW: ATTR_RGBWW_COLOR,
+            ColorMode.RGB: ATTR_RGB_COLOR,
+            ColorMode.RGBW: ATTR_RGBW_COLOR,
+            ColorMode.RGBWW: ATTR_RGBWW_COLOR,
         }
 
         for key in supported_color_modes:
@@ -227,14 +236,12 @@ class SceneStateSwitch(SwitchEntity):
         # Compare relevant attributes
         supported_features = currentState.attributes.get(ATTR_SUPPORTED_FEATURES, 0)
         fuzzyAttrs = {
-            SUPPORT_SET_POSITION: ATTR_CURRENT_POSITION,
-            SUPPORT_SET_TILT_POSITION: ATTR_CURRENT_TILT_POSITION,
+            CoverEntityFeature.SET_POSITION: ATTR_CURRENT_POSITION,
+            CoverEntityFeature.SET_TILT_POSITION: ATTR_CURRENT_TILT_POSITION,
         }
 
-        for key in fuzzyAttrs.keys():
+        for key, attr in fuzzyAttrs.items():
             if supported_features & key > 0:
-                attr = fuzzyAttrs[key]
-
                 _LOGGER.debug(
                     "%s Comparing %s for %s", self.name, attr, sceneState.name
                 )
@@ -256,7 +263,7 @@ class SceneStateSwitch(SwitchEntity):
         _LOGGER.debug("All supported cover position attributes match")
         return True
 
-    def update(self):
+    def update(self) -> None:
         """Compare the current entity state to the scene state."""
         scenePlatform = self.hass.data[SCENE_DATA_PLATFORM]
         scene = scenePlatform.entities.get(self._sceneId)
@@ -267,7 +274,6 @@ class SceneStateSwitch(SwitchEntity):
         }
 
         for sceneState in scene.scene_config.states.values():
-
             comparer = switch.get(sceneState.domain, self._compare_simple_state)
             if comparer is not None:
                 if not comparer(sceneState):
