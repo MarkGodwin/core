@@ -11,13 +11,11 @@ from homeassistant.components.cover import (
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_COLOR_MODE,
-    ATTR_COLOR_TEMP,
     ATTR_COLOR_TEMP_KELVIN,
     ATTR_HS_COLOR,
     ATTR_RGB_COLOR,
     ATTR_RGBW_COLOR,
     ATTR_RGBWW_COLOR,
-    ATTR_SUPPORTED_COLOR_MODES,
     ATTR_XY_COLOR,
     ColorMode,
 )
