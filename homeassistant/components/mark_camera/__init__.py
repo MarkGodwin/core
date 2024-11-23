@@ -1,4 +1,5 @@
 """Generic Camera with Device and linked motion sensors component."""
+
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
@@ -6,7 +7,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 DOMAIN = "mark_camera"
-PLATFORMS = [Platform.CAMERA, Platform.BINARY_SENSOR]
+PLATFORMS = [Platform.CAMERA, Platform.BINARY_SENSOR, Platform.EVENT]
 
 
 async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:

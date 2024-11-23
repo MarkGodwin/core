@@ -10,7 +10,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import DOMAIN
-from .const import CONF_DOORBELL_SENSOR, CONF_MOTION_SENSOR
+from .const import CONF_MOTION_SENSOR
 
 
 async def async_setup_entry(
@@ -23,22 +23,9 @@ async def async_setup_entry(
     if entry.options.get(CONF_MOTION_SENSOR) not in (None, ""):
         to_add.append(
             BinarySensorMirror(
-                hass,
                 entry.entry_id,
-                True,
                 entry.title,
                 entry.options.get(CONF_MOTION_SENSOR),
-            )
-        )
-
-    if entry.options.get(CONF_DOORBELL_SENSOR) not in (None, ""):
-        to_add.append(
-            BinarySensorMirror(
-                hass,
-                entry.entry_id,
-                False,
-                entry.title,
-                entry.options.get(CONF_DOORBELL_SENSOR),
             )
         )
 
@@ -50,23 +37,18 @@ class BinarySensorMirror(BinarySensorGroup):
 
     def __init__(
         self,
-        hass: HomeAssistant,
         identifier,
-        usage: bool,
         title,
         entity_id,
     ) -> None:
         """Initialize a generic camera's linked sensor. We simply use a Group of one to duplicate the sensor."""
         super().__init__(
-            identifier + ("_motion" if usage else "_doorbell"),
-            title + (" Motion" if usage else " Doorbell"),
-            BinarySensorDeviceClass.MOTION
-            if usage
-            else BinarySensorDeviceClass.OCCUPANCY,
+            identifier + "_motion",
+            title + " Motion",
+            BinarySensorDeviceClass.MOTION,
             [entity_id],
             None,
         )
-        self.hass = hass
 
         self._dev_unique_id = identifier
         self._title = title
