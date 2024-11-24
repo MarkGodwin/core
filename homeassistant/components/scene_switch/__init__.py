@@ -54,7 +54,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: SceneSwitchConfigEntry) 
     )
     entry.runtime_data = config
 
-    async def async_registry_updated(event: Event) -> None:
+    async def async_registry_updated(
+        event: Event[er.EventEntityRegistryUpdatedData],
+    ) -> None:
         """Handle entity registry update."""
         data = event.data
         if data["action"] == "remove":
@@ -64,7 +66,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: SceneSwitchConfigEntry) 
         if data["action"] != "update":
             return
 
-        # TODO: If the scene's devices or entities change, reload the scene switch
         if "entity_id" in data["changes"]:
             # Entity_id changed, reload the config entry
             await hass.config_entries.async_reload(entry.entry_id)

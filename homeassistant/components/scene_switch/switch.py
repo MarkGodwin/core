@@ -23,7 +23,14 @@ from homeassistant.components.light import (
 )
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_SUPPORTED_FEATURES, SERVICE_TURN_ON
-from homeassistant.core import _LOGGER, Event, HomeAssistant, callback
+from homeassistant.core import (
+    _LOGGER,
+    Event,
+    EventStateChangedData,
+    HomeAssistant,
+    State,
+    callback,
+)
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
@@ -50,6 +57,7 @@ async def async_setup_entry(
             SceneStateSwitch(
                 config_entry.title,
                 config,
+                config_entry.entry_id,
                 wrapped_scene.icon,
             )
         ]
@@ -117,16 +125,13 @@ mode_comparers = {
         (ATTR_XY_COLOR, lambda curr, scene: _xy_compare(*curr, *scene)),
     ],
     ColorMode.RGB: [
-        ATTR_RGB_COLOR,
-        lambda curr, scene: _rgb_compare(*curr, *scene),
+        (ATTR_RGB_COLOR, lambda curr, scene: _rgb_compare(*curr, *scene)),
     ],
     ColorMode.RGBW: [
-        ATTR_RGBW_COLOR,
-        lambda curr, scene: _rgbw_compare(*curr, *scene),
+        (ATTR_RGBW_COLOR, lambda curr, scene: _rgbw_compare(*curr, *scene)),
     ],
     ColorMode.RGBWW: [
-        ATTR_RGBWW_COLOR,
-        lambda curr, scene: _rgbww_compare(*curr, *scene),
+        (ATTR_RGBWW_COLOR, lambda curr, scene: _rgbww_compare(*curr, *scene)),
     ],
 }
 
@@ -134,13 +139,20 @@ mode_comparers = {
 class SceneStateSwitch(SwitchEntity):
     """Representation of a Switch."""
 
-    def __init__(self, sceneName: str, config: SceneSwitchConfig, icon: str) -> None:
+    def __init__(
+        self,
+        sceneName: str,
+        config: SceneSwitchConfig,
+        unique_id: str,
+        icon: str | None,
+    ) -> None:
         """Initialize the switch."""
         self._attr_is_on = False
         self._config = config
         self._sceneName = sceneName
         self._attr_should_poll = False
         self._attr_icon = icon
+        self._attr_unique_id = unique_id
         _LOGGER.info(
             "Creating scene state switch for scene %s", self._config.scene_entity_id
         )
@@ -149,7 +161,9 @@ class SceneStateSwitch(SwitchEntity):
         """Register callbacks."""
 
         @callback
-        def _async_state_changed_listener(event: Event | None = None) -> None:
+        def _async_state_changed_listener(
+            event: Event[EventStateChangedData] | None = None,
+        ) -> None:
             """Handle child updates."""
             self.async_schedule_update_ha_state(force_refresh=True)
 
@@ -160,9 +174,6 @@ class SceneStateSwitch(SwitchEntity):
                 _async_state_changed_listener,
             )
         )
-
-        # initial refresh
-        _async_state_changed_listener()
 
     @property
     def name(self) -> str:
@@ -200,7 +211,7 @@ class SceneStateSwitch(SwitchEntity):
 
         return currentState is not None and currentState.state == sceneState.state
 
-    def _compare_light_state(self, scene_state) -> bool:
+    def _compare_light_state(self, scene_state: State) -> bool:
         if not self._config.include_lights:
             return True
         _LOGGER.debug(
@@ -228,9 +239,11 @@ class SceneStateSwitch(SwitchEntity):
         ):
             return False
 
-        current_mode = current_state.attributes.get(ATTR_COLOR_MODE)
+        current_mode = ColorMode(
+            current_state.attributes.get(ATTR_COLOR_MODE, ColorMode.UNKNOWN)
+        )
 
-        comparers = mode_comparers.get(current_mode)
+        comparers = mode_comparers.get(current_mode, [])
 
         if comparers is not None:
             for attr, comparer in comparers:
@@ -306,7 +319,7 @@ class SceneStateSwitch(SwitchEntity):
     def update(self) -> None:
         """Compare the current entity state to the scene state."""
         scenePlatform = self.hass.data[SCENE_DATA_PLATFORM]
-        scene = scenePlatform.entities.get(self._sceneId)
+        scene = scenePlatform.entities.get(self._config.scene_entity_id)
 
         comparers = {
             "light": self._compare_light_state,
