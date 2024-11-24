@@ -1,0 +1,10 @@
+{
+  "domain": "scene_switch",
+  "name": "Scene Switch Helper",
+  "codeowners": ["@markgodwin"],
+  "config_flow": true,
+  "documentation": "https://www.home-assistant.io/integrations/switch_as_x",
+  "integration_type": "helper",
+  "iot_class": "calculated",
+  "quality_scale": "silver"
+}

@@ -7,7 +7,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 DOMAIN = "mark_camera"
-PLATFORMS = [Platform.CAMERA, Platform.BINARY_SENSOR, Platform.EVENT]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.CAMERA, Platform.EVENT]
 
 
 async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
