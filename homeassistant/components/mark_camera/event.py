@@ -53,7 +53,7 @@ class BinarySensorToDoorbellEvent(GroupEntity, EventEntity):
         self._attr_name = name + " Doorbell"
         self._attr_extra_state_attributes = {ATTR_ENTITY_ID: [entity_id]}
         self._attr_unique_id = unique_id + "_doorbell"
-        self._attr_event_class = EventDeviceClass.DOORBELL
+        self._attr_device_class = EventDeviceClass.DOORBELL
         self._attr_event_types = ["single_press"]
 
     @callback
