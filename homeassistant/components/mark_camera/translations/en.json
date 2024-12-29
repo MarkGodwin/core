@@ -20,7 +20,8 @@
             "unable_still_load_no_image": "Unable to load valid image from still image URL: No image was returned.",
             "unable_still_load_not_found": "Unable to load valid image from still image URL: The URL was not found on the server.",
             "unable_still_load_server_error": "Unable to load valid image from still image URL: The camera replied with a server error.",
-            "unknown": "Unexpected error"
+            "unknown": "Unexpected error",
+            "unknown_with_details": "An unknown error occurred: {error}"
         },
         "step": {
             "user": {
@@ -39,12 +40,12 @@
                 },
                 "description": "Enter the settings to connect to the camera."
             },
-            "user_confirm_still": {
+            "user_confirm": {
                 "data": {
-                    "confirmed_ok": "This image looks good."
+                    "confirmed_ok": "Everything looks good."
                 },
-                "description": "![Camera Still Image Preview]({preview_url})",
-                "title": "Preview"
+                "description": "Please wait for previews to load...",
+                "title": "Confirmation"
             }
         }
     },
@@ -65,7 +66,8 @@
             "unable_still_load_no_image": "Unable to load valid image from still image URL: No image was returned.",
             "unable_still_load_not_found": "Unable to load valid image from still image URL: The URL was not found on the server.",
             "unable_still_load_server_error": "Unable to load valid image from still image URL: The camera replied with a server error.",
-            "unknown": "Unexpected error"
+            "unknown": "Unexpected error",
+            "unknown_with_details": "An unknown error occurred: {error}"
         },
         "step": {
             "confirm_still": {
