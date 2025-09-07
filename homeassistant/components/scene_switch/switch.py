@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from homeassistant.components.cover import (
@@ -14,17 +15,18 @@ from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_COLOR_MODE,
     ATTR_COLOR_TEMP_KELVIN,
+    ATTR_EFFECT,
     ATTR_HS_COLOR,
     ATTR_RGB_COLOR,
     ATTR_RGBW_COLOR,
     ATTR_RGBWW_COLOR,
     ATTR_XY_COLOR,
     ColorMode,
+    LightEntityFeature,
 )
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_SUPPORTED_FEATURES, SERVICE_TURN_ON
 from homeassistant.core import (
-    _LOGGER,
     Event,
     EventStateChangedData,
     HomeAssistant,
@@ -32,18 +34,19 @@ from homeassistant.core import (
     callback,
 )
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 
 from . import SceneSwitchConfig, SceneSwitchConfigEntry
 
+_LOGGER = logging.getLogger(__name__)
 SCENE_DATA_PLATFORM = "homeassistant_scene"
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: SceneSwitchConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Initialize scene switch config entry."""
     registry = er.async_get(hass)
@@ -65,7 +68,8 @@ async def async_setup_entry(
 
 
 def _hs_compare(ch: int, cs: int, sh: int, ss: int) -> bool:
-    return abs(ch - sh) < 5 and abs(cs - ss) < 2
+    # Ignore hue if fully unsaturated (white!)
+    return abs(cs - ss) < 2 and (cs == 0 or abs(ch - sh) < 5)
 
 
 def _xy_compare(cx: int, cy: int, sx: int, sy: int) -> bool:
@@ -165,7 +169,7 @@ class SceneStateSwitch(SwitchEntity):
             event: Event[EventStateChangedData] | None = None,
         ) -> None:
             """Handle child updates."""
-            self.async_schedule_update_ha_state(force_refresh=True)
+            self.schedule_update_ha_state(force_refresh=True)
 
         self.async_on_remove(
             async_track_state_change_event(
@@ -201,7 +205,7 @@ class SceneStateSwitch(SwitchEntity):
             {ATTR_ENTITY_ID: self._config.scene_entity_id},
             blocking=True,
         )
-        self.async_schedule_update_ha_state(force_refresh=True)
+        self.schedule_update_ha_state(force_refresh=True)
 
     def _compare_simple_state(self, sceneState) -> bool:
         if sceneState.domain == "switch" and not self._config.include_switches:
@@ -222,43 +226,74 @@ class SceneStateSwitch(SwitchEntity):
         )
         current_state = self.hass.states.get(scene_state.entity_id)
         if current_state is None:
+            _LOGGER.debug("%s: Unknown State", self.name)
             return False
         if current_state.state != scene_state.state:
             _LOGGER.debug(
-                "State does not match: %s != %s", current_state.state, scene_state.state
+                "%s: State does not match: %s != %s",
+                self.name,
+                current_state.state,
+                scene_state.state,
             )
             return False
 
         if current_state.state == "off":
             # Off is off, regardless of colour
-            _LOGGER.debug("State matches off")
+            _LOGGER.debug("%s: State matches off", self.name)
             return True
 
         if current_state.attributes.get(ATTR_COLOR_MODE) != scene_state.attributes.get(
             ATTR_COLOR_MODE
         ):
+            _LOGGER.debug(
+                "%s: Colour modes don't match %s != %s",
+                self.name,
+                current_state.attributes.get(ATTR_COLOR_MODE),
+                scene_state.attributes.get(ATTR_COLOR_MODE),
+            )
             return False
 
         current_mode = ColorMode(
             current_state.attributes.get(ATTR_COLOR_MODE, ColorMode.UNKNOWN)
         )
 
+        supported_features = current_state.attributes.get(ATTR_SUPPORTED_FEATURES, 0)
+
+        # Current active effect trumps brightness/colour
+        if LightEntityFeature.EFFECT in supported_features:
+            current_effect = current_state.attributes.get(ATTR_EFFECT)
+            scene_effect = scene_state.attributes.get(ATTR_EFFECT)
+            if current_effect == "solid":
+                current_effect = None
+            if scene_effect == "solid":
+                scene_effect = None
+            if current_effect is not None or scene_effect is not None:
+                _LOGGER.debug(
+                    "%s: Matching effect %s to %s",
+                    self.name,
+                    str(current_effect),
+                    str(scene_effect),
+                )
+                return current_effect == scene_effect
+
         comparers = mode_comparers.get(current_mode, [])
 
         if comparers is not None:
             for attr, comparer in comparers:
                 _LOGGER.debug(
-                    "Current %s: %d, Scene state: %d",
+                    "%s: Current %s: %s, Scene state: %s",
+                    self.name,
                     attr,
-                    current_state.attributes.get(attr),
-                    scene_state.attributes.get(attr),
+                    str(current_state.attributes.get(attr)),
+                    str(scene_state.attributes.get(attr)),
                 )
                 if not comparer(
                     current_state.attributes.get(attr), scene_state.attributes.get(attr)
                 ):
+                    _LOGGER.debug("%s - No match", self.name)
                     return False
 
-        _LOGGER.debug("All supported colour mode attributes match")
+        _LOGGER.debug("%s: All supported colour mode attributes match", self.name)
         return True
 
     def _compare_cover_state(self, sceneState) -> bool:
